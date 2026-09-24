@@ -1,0 +1,6 @@
+{
+  "name": "SCDP",
+  "description": "SCDP - Sistema de Controle Digital de Produção: Controle de Empacotamento, Apontamento de Paradas, Checagem de Datagem e Histórico Unificado com Dashboard e Relatórios em PDF.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
