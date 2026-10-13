@@ -26,35 +26,46 @@ jobs:
       - name: Configurar Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Compilar APK de Debug
-        run: gradle assembleDebug
+      - name: Compilar APKs (Release e Debug)
+        run: |
+          chmod +x gradlew || true
+          gradle assembleRelease assembleDebug
 
-      - name: Disponibilizar APK como Artefato
+      - name: Disponibilizar APKs como Artefato
         uses: actions/upload-artifact@v4
         with:
-          name: SCDP-app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: SCDP-apks
+          path: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Renomear APK de Release para publicação
+        run: |
+          cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/SCDP-v1.1-release.apk
 
       - name: Criar ou Atualizar Release Oficial com o APK
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.0.0
-          name: SCDP v1.0.0 - Versão Oficial (Download APK)
+          tag_name: v1.1.0
+          name: SCDP v1.1.0 - Versão Oficial Release (Download APK)
           body: |
             ### 📱 SCDP - Sistema de Controle Digital de Produção (Farinhas CJ)
             
-            Versão oficial compilada pronta para instalação em dispositivos Android.
+            Versão oficial de **Release** compilada e pronta para uso operacional no chão de fábrica.
             
-            #### 📦 Arquivo para Download:
-            - Baixe o arquivo **`app-debug.apk`** logo abaixo na seção **Assets**.
+            #### 📦 Arquivos para Download:
+            - **`SCDP-v1.1-release.apk`** (Recomendado - 13 MB): Versão final de produção, estável e otimizada.
+            - **`app-debug.apk`**: Versão de testes/depuração.
             
-            #### 📲 Como Instalar no Celular/Tablet:
-            1. Baixe o arquivo `app-debug.apk` no seu celular ou envie via WhatsApp/Drive.
-            2. Toque no arquivo baixado para abrir a instalação.
-            3. Se solicitado, permita a instalação a partir do navegador ou gerenciador de arquivos.
-            4. Conclua a instalação e abra o SCDP!
-          files: app/build/outputs/apk/debug/app-debug.apk
+            #### 📲 Como Instalar:
+            1. Baixe o **`SCDP-v1.1-release.apk`** no celular ou tablet Android.
+            2. Abra o arquivo baixado para iniciar a instalação.
+            3. Se o Android perguntar, permita a instalação a partir do navegador/arquivos ("Instalar apps desconhecidos").
+            4. Abra o SCDP e use normalmente!
+          files: |
+            app/build/outputs/apk/release/SCDP-v1.1-release.apk
+            app/build/outputs/apk/debug/app-debug.apk
           draft: false
           prerelease: false
         env:
