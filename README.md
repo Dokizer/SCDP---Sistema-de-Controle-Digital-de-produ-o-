@@ -18,7 +18,7 @@ Para baixar e instalar o aplicativo no seu celular ou tablet Android:
 
 👉 **[Clique aqui para Baixar a Versão Mais Recente (Releases)](https://github.com/Dokizer/SCDP---Sistema-de-Controle-Digital-de-produ-o-/releases)**
 
-> O GitHub compila e anexa o arquivo **`app-debug.apk`** automaticamente em cada versão publicada através do GitHub Actions configurado no projeto.
+> O GitHub compila e disponibiliza o arquivo **`SCDP-v1.1-release.apk`** diretamente para download na aba **Releases**.
 
 ---
 
@@ -100,38 +100,37 @@ app/
 ### Passos de Compilação
 1. Clone o repositório:
    ```bash
-   git clone https://github.com/SEU-USUARIO/SCDP.git
-   cd SCDP
+   git clone https://github.com/Dokizer/SCDP---Sistema-de-Controle-Digital-de-produ-o-.git
+   cd SCDP---Sistema-de-Controle-Digital-de-produ-o-
    ```
 
-2. Compile o APK de depuração:
+2. Compile o APK de Release (Produção):
    ```bash
-   ./gradlew assembleDebug
+   ./gradlew assembleRelease
    ```
 
 3. O APK gerado estará disponível no caminho:
    ```
-   app/build/outputs/apk/debug/app-debug.apk
+   app/build/outputs/apk/release/app-release.apk
    ```
 
 4. Para instalar diretamente em um dispositivo conectado via USB (com depuração USB ativada):
    ```bash
-   adb install app/build/outputs/apk/debug/app-debug.apk
+   adb install app/build/outputs/apk/release/app-release.apk
    ```
 
 ---
 
-## 📦 Como Publicar o APK nas Releases do GitHub
+## 📦 Como Publicar Atualizações nas Releases do GitHub
 
 A melhor prática recomendada pelo GitHub é disponibilizar o arquivo `.apk` na aba **Releases**:
 
-1. Acesse o seu repositório no GitHub.
+1. Acesse o seu repositório no GitHub: `Dokizer/SCDP---Sistema-de-Controle-Digital-de-produ-o-`.
 2. Na barra lateral direita, clique em **Releases** (ou **Create a new release**).
-3. Clique em **Draft a new release**.
-4. Defina uma tag de versão (ex: `v1.1.0`) e um título (ex: `SCDP v1.1.0 - Versão Oficial`).
-5. No campo de anexo de arquivos (**Attach binaries by dropping them here or selecting them**), arraste o arquivo `app-debug.apk`.
-6. Adicione as notas da versão descrevendo as novidades e clique em **Publish release**.
-7. Pronto! Qualquer operador ou usuário poderá baixar e instalar o APK diretamente pelo link da Release.
+3. Defina a tag de versão (ex: `v1.1.0`) e um título (ex: `SCDP v1.1.0 - Versão Oficial Release`).
+4. No campo de anexo de arquivos (**Attach binaries by dropping them here**), anexe o arquivo `SCDP-v1.1-release.apk`.
+5. Marque como **"Set as the latest release"** e clique em **Publish release**.
+6. Pronto! Qualquer operador ou usuário poderá baixar e instalar o APK diretamente pelo link da Release.
 
 ---
 
