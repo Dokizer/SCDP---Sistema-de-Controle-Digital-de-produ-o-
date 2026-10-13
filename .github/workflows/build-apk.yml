@@ -1,0 +1,61 @@
+name: Gerar e Publicar APK (Build & Release)
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Compilar APK Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar código do repositório
+        uses: actions/checkout@v4
+
+      - name: Configurar Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Configurar Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Compilar APK de Debug
+        run: gradle assembleDebug
+
+      - name: Disponibilizar APK como Artefato
+        uses: actions/upload-artifact@v4
+        with:
+          name: SCDP-app-debug
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Criar ou Atualizar Release Oficial com o APK
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.0
+          name: SCDP v1.0.0 - Versão Oficial (Download APK)
+          body: |
+            ### 📱 SCDP - Sistema de Controle Digital de Produção (Farinhas CJ)
+            
+            Versão oficial compilada pronta para instalação em dispositivos Android.
+            
+            #### 📦 Arquivo para Download:
+            - Baixe o arquivo **`app-debug.apk`** logo abaixo na seção **Assets**.
+            
+            #### 📲 Como Instalar no Celular/Tablet:
+            1. Baixe o arquivo `app-debug.apk` no seu celular ou envie via WhatsApp/Drive.
+            2. Toque no arquivo baixado para abrir a instalação.
+            3. Se solicitado, permita a instalação a partir do navegador ou gerenciador de arquivos.
+            4. Conclua a instalação e abra o SCDP!
+          files: app/build/outputs/apk/debug/app-debug.apk
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -12,6 +12,16 @@ Projetado para operar em ambientes industriais com arquitetura 100% offline, gar
 
 ---
 
+## 📥 Download Direto do APK
+
+Para baixar e instalar o aplicativo no seu celular ou tablet Android:
+
+👉 **[Clique aqui para Baixar a Versão Mais Recente (Releases)](https://github.com/Dokizer/SCDP---Sistema-de-Controle-Digital-de-produ-o-/releases)**
+
+> O GitHub compila e anexa o arquivo **`app-debug.apk`** automaticamente em cada versão publicada através do GitHub Actions configurado no projeto.
+
+---
+
 ## 📱 Módulos e Funcionalidades
 
 ### 1. 📊 Painel Principal (Dashboard)
