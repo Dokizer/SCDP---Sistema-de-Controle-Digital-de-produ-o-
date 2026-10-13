@@ -244,4 +244,158 @@ class DashboardAndPdfValidationTest {
         assertTrue("Primeiro item deve ser conforme", parsedChecks.getJSONObject(0).getBoolean("isCompliant"))
         assertTrue("Terceiro item deve ser não-conforme", !parsedChecks.getJSONObject(2).getBoolean("isCompliant"))
     }
+
+    @Test
+    fun testUnifiedHistoryItemMappingForAllThreeTypes() {
+        // Teste de mapeamento do Controle de Empacotamento
+        val pkg = PackagingControlEntity(
+            id = "pkg-123",
+            date = "06/10/2026",
+            product = "Farinha Especial 1kg",
+            line = "Linha 01",
+            shift = "1º Turno",
+            totalRealizedFds = 850
+        )
+        val unifiedPkg = com.example.data.model.UnifiedHistoryItem(
+            id = pkg.id,
+            type = com.example.data.model.HistoryType.PACKAGING,
+            title = "Controle de Empacotamento",
+            subtitle = "${pkg.product} • ${pkg.line} (${pkg.shift})",
+            line = pkg.line,
+            shift = pkg.shift,
+            date = pkg.date,
+            metricsSummary = "${pkg.totalRealizedFds} fds realizados",
+            timestamp = pkg.createdAt,
+            isSynced = true
+        )
+        assertEquals("Controle de Empacotamento", unifiedPkg.title)
+        assertEquals("Farinha Especial 1kg • Linha 01 (1º Turno)", unifiedPkg.subtitle)
+        assertEquals("850 fds realizados", unifiedPkg.metricsSummary)
+        assertEquals("06/10/2026", unifiedPkg.date)
+
+        // Teste de mapeamento do Apontamento de Paradas
+        val dt = MachineDowntimeEntity(
+            id = "dt-456",
+            date = "06/10/2026",
+            product = "Milho Flocão 500g",
+            line = "Linha 02",
+            shift = "2º Turno",
+            totalStopsCount = 4,
+            totalDowntimeMinutes = 75
+        )
+        val unifiedDt = com.example.data.model.UnifiedHistoryItem(
+            id = dt.id,
+            type = com.example.data.model.HistoryType.DOWNTIME,
+            title = "Apontamento de Paradas",
+            subtitle = "${dt.product} • ${dt.line} (${dt.shift})",
+            line = dt.line,
+            shift = dt.shift,
+            date = dt.date,
+            metricsSummary = "${dt.totalStopsCount} paradas registradas",
+            timestamp = dt.createdAt,
+            isSynced = true
+        )
+        assertEquals("Apontamento de Paradas", unifiedDt.title)
+        assertEquals("4 paradas registradas", unifiedDt.metricsSummary)
+
+        // Teste de mapeamento da Checagem de Datagem
+        val dating = DatingCheckEntity(
+            id = "dat-789",
+            date = "06/10/2026",
+            machine = "M1",
+            shift = "3º Turno",
+            compliantCount = 8,
+            nonCompliantCount = 0
+        )
+        val unifiedDating = com.example.data.model.UnifiedHistoryItem(
+            id = dating.id,
+            type = com.example.data.model.HistoryType.DATING,
+            title = "Checagem de Datagem",
+            subtitle = "Máquina ${dating.machine} • ${dating.shift}",
+            line = dating.machine,
+            shift = dating.shift,
+            date = dating.date,
+            metricsSummary = "${dating.compliantCount} conformes / ${dating.nonCompliantCount} NC",
+            timestamp = dating.createdAt,
+            isSynced = true
+        )
+        assertEquals("Checagem de Datagem", unifiedDating.title)
+        assertEquals("Máquina M1 • 3º Turno", unifiedDating.subtitle)
+        assertEquals("8 conformes / 0 NC", unifiedDating.metricsSummary)
+    }
+
+    @Test
+    fun testCompletePackagingControlEndToEndDataPreservation() {
+        // Simular todos os campos preenchidos
+        val hourlyArray = JSONArray().apply {
+            put(JSONObject(mapOf("hourLabel" to "06:20", "meta" to "110", "real" to "115", "nTransg" to "2", "outros" to "1")))
+            put(JSONObject(mapOf("hourLabel" to "07:20", "meta" to "220", "real" to "222", "nTransg" to "0", "outros" to "0")))
+        }.toString()
+
+        val enfardadeiraArray = JSONArray().apply {
+            put(JSONObject(mapOf("quantity" to "1", "supplier" to "Embalagens Aliança", "lot" to "LT-5541", "filmWasteKg" to "0.8", "qualityDefectWeight" to "0.1", "defectDescription" to "Picote fraco")))
+        }.toString()
+
+        val entity = PackagingControlEntity(
+            date = "06/10/2026",
+            product = "Farinha Tipo 1 Especial 1kg",
+            productChangedTo = "Farinha Tipo 1 Tradicional 1kg",
+            productChangeTime = "10:30",
+            responsible = "Roberto Lima",
+            shift = "1º Turno",
+            line = "Linha 01",
+            empacotadoraInternaC = true,
+            empacotadoraExternaC = true,
+            enfardadeiraInternaC = true,
+            enfardadeiraExternaC = false, // Não Conforme
+            initialSpeed = "72",
+            changeTime = "09:00",
+            speedChangeReason = "Aumento de cadência na alimentação",
+            speedChanged = true,
+            hourlyProductionJson = hourlyArray,
+            totalRealizedFds = 337,
+            machineCondition = "C",
+            setorCondition = "C",
+            trashCondition = "C",
+            supplyCondition = "C",
+            packagingSameProduct = false,
+            weightsJson = JSONObject().apply {
+                put("gramatura", "1000g")
+                put("grid", JSONObject().apply {
+                    put("1000", JSONArray(listOf("1000", "1000")))
+                    put("1002", JSONArray(listOf("1002")))
+                })
+            }.toString(),
+            shiftAverageWeight = "1000.5",
+            packageTareWeight = "12.0",
+            enfardadeiraRowsJson = enfardadeiraArray,
+            empDevolucaoPeso = "3.5",
+            empDevolucaoDefeito = "Tubo amassado",
+            enfDevolucaoPeso = "1.2",
+            enfDevolucaoDefeito = "Fio solto",
+            leftoverLaminated = "15.0",
+            leftoverBaler = "6.5",
+            generalObservations = "Turno com troca de produto às 10:30, alinhamento mantido."
+        )
+
+        // Validações do Dashboard
+        assertEquals("Farinha Tipo 1 Especial 1kg", entity.product)
+        assertEquals("Farinha Tipo 1 Tradicional 1kg", entity.productChangedTo)
+        assertEquals("10:30", entity.productChangeTime)
+        assertEquals("72", entity.initialSpeed)
+        assertTrue(entity.speedChanged)
+        assertEquals(337, entity.totalRealizedFds)
+        assertEquals("1000.5", entity.shiftAverageWeight)
+        assertEquals("12.0", entity.packageTareWeight)
+        assertEquals("15.0", entity.leftoverLaminated)
+        assertEquals("6.5", entity.leftoverBaler)
+        assertEquals("Turno com troca de produto às 10:30, alinhamento mantido.", entity.generalObservations)
+
+        // Validações de arrays parseados
+        val enfList = JSONArray(entity.enfardadeiraRowsJson)
+        assertEquals(1, enfList.length())
+        assertEquals("Embalagens Aliança", enfList.getJSONObject(0).getString("supplier"))
+        assertEquals("LT-5541", enfList.getJSONObject(0).getString("lot"))
+        assertEquals("0.8", enfList.getJSONObject(0).getString("filmWasteKg"))
+    }
 }

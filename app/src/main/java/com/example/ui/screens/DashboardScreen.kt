@@ -128,18 +128,23 @@ fun DashboardScreen(viewModel: ProductionViewModel) {
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer,
-                                modifier = Modifier.size(42.dp)
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color(0xFF0E2038),
+                                modifier = Modifier.size(46.dp)
                             ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.img_scdp_logo),
-                                    contentDescription = "SCDP Logo",
-                                    contentScale = ContentScale.Crop,
+                                Box(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .clip(RoundedCornerShape(10.dp))
-                                )
+                                        .padding(4.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = R.drawable.ic_scdp_clean),
+                                        contentDescription = "SCDP Logo",
+                                        contentScale = ContentScale.Fit,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                }
                             }
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {

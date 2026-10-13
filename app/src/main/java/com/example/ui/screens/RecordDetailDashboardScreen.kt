@@ -22,9 +22,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Cancel
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.PrecisionManufacturing
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
@@ -32,6 +34,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -199,15 +202,17 @@ fun RecordDetailDashboardScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // Botão Principal: BAIXAR PDF (Faz o download automático para a pasta Downloads do aparelho)
                     Button(
                         onClick = {
                             when (type) {
-                                HistoryType.PACKAGING -> packagingEntity?.let { PdfExportUtil.exportPackagingPdf(context, it) }
-                                HistoryType.DOWNTIME -> downtimeEntity?.let { PdfExportUtil.exportDowntimePdf(context, it) }
-                                HistoryType.DATING -> datingEntity?.let { PdfExportUtil.exportDatingPdf(context, it) }
+                                HistoryType.PACKAGING -> packagingEntity?.let { PdfExportUtil.downloadPackagingPdf(context, it) }
+                                HistoryType.DOWNTIME -> downtimeEntity?.let { PdfExportUtil.downloadDowntimePdf(context, it) }
+                                HistoryType.DATING -> datingEntity?.let { PdfExportUtil.downloadDatingPdf(context, it) }
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
@@ -216,20 +221,47 @@ fun RecordDetailDashboardScreen(
                         ),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .weight(1f)
                             .height(48.dp)
                             .materialYouPress(scaleFactor = 0.97f)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.PictureAsPdf,
-                            contentDescription = null,
+                            imageVector = Icons.Default.FileDownload,
+                            contentDescription = "Baixar PDF",
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "EXPORTAR PDF DO DASHBOARD",
+                            text = "BAIXAR PDF",
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
+                        )
+                    }
+
+                    // Botão Secundário: Compartilhar (via WhatsApp, Bluetooth, E-mail, etc.)
+                    FilledTonalButton(
+                        onClick = {
+                            when (type) {
+                                HistoryType.PACKAGING -> packagingEntity?.let { PdfExportUtil.sharePackagingPdf(context, it) }
+                                HistoryType.DOWNTIME -> downtimeEntity?.let { PdfExportUtil.shareDowntimePdf(context, it) }
+                                HistoryType.DATING -> datingEntity?.let { PdfExportUtil.shareDatingPdf(context, it) }
+                            }
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .height(48.dp)
+                            .materialYouPress(scaleFactor = 0.97f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Compartilhar",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Compartilhar",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
                         )
                     }
                 }

@@ -54,6 +54,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -282,26 +285,37 @@ fun HistoryScreen(viewModel: ProductionViewModel) {
 
             // Filter Chips
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 HistoryFilterChip(
                     text = "Todos",
+                    count = historyItems.size,
+                    icon = Icons.Default.FilterList,
                     isSelected = selectedFilter == null,
                     onClick = { selectedFilter = null }
                 )
                 HistoryFilterChip(
                     text = "Empacotamento",
+                    count = historyItems.count { it.type == HistoryType.PACKAGING },
+                    icon = Icons.Default.Inventory2,
                     isSelected = selectedFilter == HistoryType.PACKAGING,
                     onClick = { selectedFilter = HistoryType.PACKAGING }
                 )
                 HistoryFilterChip(
                     text = "Paradas",
+                    count = historyItems.count { it.type == HistoryType.DOWNTIME },
+                    icon = Icons.Default.PrecisionManufacturing,
                     isSelected = selectedFilter == HistoryType.DOWNTIME,
                     onClick = { selectedFilter = HistoryType.DOWNTIME }
                 )
                 HistoryFilterChip(
                     text = "Datagem",
+                    count = historyItems.count { it.type == HistoryType.DATING },
+                    icon = Icons.Default.AssignmentTurnedIn,
                     isSelected = selectedFilter == HistoryType.DATING,
                     onClick = { selectedFilter = HistoryType.DATING }
                 )
@@ -366,6 +380,8 @@ fun HistoryScreen(viewModel: ProductionViewModel) {
 @Composable
 private fun HistoryFilterChip(
     text: String,
+    count: Int? = null,
+    icon: ImageVector? = null,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -378,22 +394,56 @@ private fun HistoryFilterChip(
         targetValue = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
         label = "ChipText"
     )
+    val borderColor by animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+        label = "ChipBorder"
+    )
 
     Surface(
         color = bgColor,
         shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)),
+        border = BorderStroke(1.dp, borderColor),
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
             .materialYouPress(scaleFactor = 0.94f, onClick = onClick)
     ) {
-        Text(
-            text = text,
-            color = textColor,
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-        )
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = textColor,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+            Text(
+                text = text,
+                color = textColor,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                maxLines = 1,
+                softWrap = false
+            )
+            if (count != null && count > 0) {
+                Surface(
+                    color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceContainerHighest,
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "$count",
+                        color = textColor,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -410,135 +460,198 @@ private fun HistoryItemCard(
     }
 
     val formattedDate = remember(item.timestamp) {
-        SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(item.timestamp))
+        SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date(item.timestamp))
     }
+    val displayDate = if (item.date.isNotBlank()) item.date else formattedDate
 
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .materialYouPress(scaleFactor = 0.97f, onClick = onClick),
+            .materialYouPress(scaleFactor = 0.98f, onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.elevatedCardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(14.dp)
         ) {
-            // Circle Icon
-            Surface(
-                shape = CircleShape,
-                color = iconBg,
-                modifier = Modifier.size(44.dp)
+            // Linha superior: Ícone da categoria + Título e Subtítulo + Botão Excluir
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = iconTint,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(14.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = iconBg,
+                    modifier = Modifier.size(42.dp)
                 ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = item.title,
                         color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = item.date,
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold
+                        text = item.subtitle,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodySmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = item.subtitle,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Spacer(modifier = Modifier.width(8.dp))
 
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.size(36.dp)
                 ) {
-                    // Metric Summary Badge
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        shape = RoundedCornerShape(6.dp)
-                    ) {
-                        Text(
-                            text = item.metricsSummary,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Excluir registro",
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.75f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
 
-                    // Armazenamento local no hardware
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Linha inferior: Badges de Data, Métricas e Armazenamento + Chevron de Abertura
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Badge da Data com ícone de calendário
                     Surface(
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        shape = RoundedCornerShape(6.dp)
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarMonth,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = displayDate,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        }
+                    }
+
+                    // Badge de Métricas (Destaca em vermelho se houver Não Conformidades)
+                    val isDatingNC = item.type == HistoryType.DATING &&
+                            (item.metricsSummary.contains("NC") && !item.metricsSummary.contains("/ 0 NC"))
+                    val metricBg = if (isDatingNC) {
+                        MaterialTheme.colorScheme.errorContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHighest
+                    }
+                    val metricTextColor = if (isDatingNC) {
+                        MaterialTheme.colorScheme.onErrorContainer
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+
+                    Surface(
+                        color = metricBg,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = item.metricsSummary,
+                            color = metricTextColor,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            softWrap = false,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+
+                    // Badge de Armazenamento Local no Hardware do Tablet
+                    Surface(
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 4.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Storage,
                                 contentDescription = "Salvo localmente no tablet",
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(11.dp)
+                                modifier = Modifier.size(12.dp)
                             )
-                            Spacer(modifier = Modifier.width(3.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "No tablet",
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.labelSmall,
-                                fontSize = 10.sp
+                                fontSize = 11.sp,
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
                     }
                 }
-            }
 
-            IconButton(
-                onClick = onDelete,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Excluir",
-                    tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
-                    modifier = Modifier.size(18.dp)
-                )
-            }
+                Spacer(modifier = Modifier.width(8.dp))
 
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
-            )
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    shape = CircleShape,
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = "Abrir detalhes",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }

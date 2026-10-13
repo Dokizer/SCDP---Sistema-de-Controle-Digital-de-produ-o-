@@ -1,5 +1,6 @@
 package com.example.util
 
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -10,6 +11,11 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.pdf.PdfDocument
+import android.media.MediaScannerConnection
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.example.data.model.DatingCheckEntity
@@ -29,7 +35,7 @@ object PdfExportUtil {
     private const val PAGE_HEIGHT = 842
     private const val MARGIN = 36f
 
-    fun exportPackagingPdf(context: Context, entity: PackagingControlEntity) {
+    fun exportPackagingPdf(context: Context, entity: PackagingControlEntity, isShare: Boolean = false) {
         val document = PdfDocument()
         val pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, 1).create()
         val page = document.startPage(pageInfo)
@@ -208,10 +214,14 @@ object PdfExportUtil {
         drawSignatures(canvas, y)
 
         document.finishPage(page)
-        saveAndSharePdf(context, document, "controle_empacotamento_${entity.date.replace("/", "-")}_${entity.line}.pdf")
+        val filename = "controle_empacotamento_${entity.date.replace("/", "-")}_${entity.line}.pdf"
+        if (isShare) saveAndSharePdf(context, document, filename) else saveAndDownloadPdf(context, document, filename)
     }
 
-    fun exportDowntimePdf(context: Context, entity: MachineDowntimeEntity) {
+    fun downloadPackagingPdf(context: Context, entity: PackagingControlEntity) = exportPackagingPdf(context, entity, isShare = false)
+    fun sharePackagingPdf(context: Context, entity: PackagingControlEntity) = exportPackagingPdf(context, entity, isShare = true)
+
+    fun exportDowntimePdf(context: Context, entity: MachineDowntimeEntity, isShare: Boolean = false) {
         val document = PdfDocument()
         val pageInfo = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, 1).create()
         val page = document.startPage(pageInfo)
@@ -324,10 +334,14 @@ object PdfExportUtil {
         drawSignatures(canvas, y)
 
         document.finishPage(page)
-        saveAndSharePdf(context, document, "paradas_${entity.date.replace("/", "-")}_${entity.line}.pdf")
+        val filename = "paradas_${entity.date.replace("/", "-")}_${entity.line}.pdf"
+        if (isShare) saveAndSharePdf(context, document, filename) else saveAndDownloadPdf(context, document, filename)
     }
 
-    fun exportDatingPdf(context: Context, entity: DatingCheckEntity) {
+    fun downloadDowntimePdf(context: Context, entity: MachineDowntimeEntity) = exportDowntimePdf(context, entity, isShare = false)
+    fun shareDowntimePdf(context: Context, entity: MachineDowntimeEntity) = exportDowntimePdf(context, entity, isShare = true)
+
+    fun exportDatingPdf(context: Context, entity: DatingCheckEntity, isShare: Boolean = false) {
         val document = PdfDocument()
         var pageNumber = 1
         val pageInfo1 = PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, pageNumber).create()
@@ -572,8 +586,12 @@ object PdfExportUtil {
             }
         }
 
-        saveAndSharePdf(context, document, "checagem_datagem_${entity.date.replace("/", "-")}_${entity.machine}.pdf")
+        val filename = "checagem_datagem_${entity.date.replace("/", "-")}_${entity.machine}.pdf"
+        if (isShare) saveAndSharePdf(context, document, filename) else saveAndDownloadPdf(context, document, filename)
     }
+
+    fun downloadDatingPdf(context: Context, entity: DatingCheckEntity) = exportDatingPdf(context, entity, isShare = false)
+    fun shareDatingPdf(context: Context, entity: DatingCheckEntity) = exportDatingPdf(context, entity, isShare = true)
 
     private fun drawSectionBox(canvas: Canvas, left: Float, top: Float, right: Float, bottom: Float, title: String) {
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -646,6 +664,77 @@ object PdfExportUtil {
         canvas.drawText("GARANTIA DA QUALIDADE", sig3X + 12f, y + 36f, textPaint)
     }
 
+    private fun saveAndDownloadPdf(context: Context, document: PdfDocument, filename: String) {
+        try {
+            // 1. Android 10+ (API 29+): Salva diretamente na pasta pública de Downloads do aparelho via MediaStore
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val resolver = context.contentResolver
+                val contentValues = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                    put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS + "/FarinhasCJ")
+                }
+                val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+                if (uri != null) {
+                    resolver.openOutputStream(uri)?.use { out ->
+                        document.writeTo(out)
+                        out.flush()
+                    }
+                }
+            } else {
+                // 2. Android 9 e anteriores: Salva na pasta pública de Downloads do armazenamento
+                val publicDownloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val targetDir = File(publicDownloads, "FarinhasCJ")
+                if (!targetDir.exists()) targetDir.mkdirs()
+                val targetFile = File(targetDir, filename)
+                FileOutputStream(targetFile).use { out ->
+                    document.writeTo(out)
+                    out.flush()
+                }
+                MediaScannerConnection.scanFile(context, arrayOf(targetFile.absolutePath), arrayOf("application/pdf"), null)
+            }
+
+            // 3. Salva também cópia no cache interno do app para visualização imediata segura via FileProvider
+            val cacheFile = File(context.cacheDir, filename)
+            FileOutputStream(cacheFile).use { out ->
+                document.writeTo(out)
+                out.flush()
+            }
+
+            document.close()
+
+            // 4. Toast de confirmação do download direto no hardware
+            Toast.makeText(
+                context,
+                "✓ Download concluído com sucesso!\nSalvo em: Downloads/FarinhasCJ/$filename",
+                Toast.LENGTH_LONG
+            ).show()
+
+            // 5. Abre automaticamente o PDF baixado no leitor do tablet/celular
+            try {
+                val viewUri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.fileprovider",
+                    cacheFile
+                )
+                val openIntent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(viewUri, "application/pdf")
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                val chooser = Intent.createChooser(openIntent, "Abrir PDF Baixado").apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(chooser)
+            } catch (_: Exception) {
+                // Se não houver leitor de PDF instalado, o arquivo já está baixado e seguro na pasta Downloads
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(context, "Erro ao baixar PDF: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun saveAndSharePdf(context: Context, document: PdfDocument, filename: String) {
         try {
             val file = File(context.cacheDir, filename)
@@ -664,13 +753,13 @@ object PdfExportUtil {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "application/pdf"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "Relatório Oficial de Produção - SCDP")
-                putExtra(Intent.EXTRA_TEXT, "Segue anexo o relatório oficial em PDF gerado pelo sistema de produção.")
+                putExtra(Intent.EXTRA_SUBJECT, "Relatório Oficial de Produção - Farinhas CJ")
+                putExtra(Intent.EXTRA_TEXT, "Segue anexo o relatório oficial em PDF gerado pelo sistema de produção Farinhas CJ.")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
 
-            val chooser = Intent.createChooser(shareIntent, "Abrir / Exportar PDF do Relatório").apply {
+            val chooser = Intent.createChooser(shareIntent, "Compartilhar PDF do Relatório").apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             context.startActivity(chooser)
