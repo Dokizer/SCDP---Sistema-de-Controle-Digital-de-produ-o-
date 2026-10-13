@@ -90,50 +90,6 @@ app/
 
 ---
 
-## 🚀 Como Compilar e Gerar o APK
-
-### Pré-requisitos
-- Android Studio Ladybug ou superior
-- JDK 17 ou 21
-- Android SDK instalado (API 34+)
-
-### Passos de Compilação
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/Dokizer/SCDP---Sistema-de-Controle-Digital-de-produ-o-.git
-   cd SCDP---Sistema-de-Controle-Digital-de-produ-o-
-   ```
-
-2. Compile o APK de Release (Produção):
-   ```bash
-   ./gradlew assembleRelease
-   ```
-
-3. O APK gerado estará disponível no caminho:
-   ```
-   app/build/outputs/apk/release/app-release.apk
-   ```
-
-4. Para instalar diretamente em um dispositivo conectado via USB (com depuração USB ativada):
-   ```bash
-   adb install app/build/outputs/apk/release/app-release.apk
-   ```
-
----
-
-## 📦 Como Publicar Atualizações nas Releases do GitHub
-
-A melhor prática recomendada pelo GitHub é disponibilizar o arquivo `.apk` na aba **Releases**:
-
-1. Acesse o seu repositório no GitHub: `Dokizer/SCDP---Sistema-de-Controle-Digital-de-produ-o-`.
-2. Na barra lateral direita, clique em **Releases** (ou **Create a new release**).
-3. Defina a tag de versão (ex: `v1.1.0`) e um título (ex: `SCDP v1.1.0 - Versão Oficial Release`).
-4. No campo de anexo de arquivos (**Attach binaries by dropping them here**), anexe o arquivo `SCDP-v1.1-release.apk`.
-5. Marque como **"Set as the latest release"** e clique em **Publish release**.
-6. Pronto! Qualquer operador ou usuário poderá baixar e instalar o APK diretamente pelo link da Release.
-
----
-
 ## 📄 Licença e Propriedade
 
 Desenvolvido para uso operacional interno da **Farinhas CJ**. Todos os direitos reservados.
