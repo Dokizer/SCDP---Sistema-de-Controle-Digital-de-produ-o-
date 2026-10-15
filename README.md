@@ -18,7 +18,7 @@ Para baixar e instalar o aplicativo no seu celular ou tablet Android:
 
 👉 **[Clique aqui para Baixar a Versão Mais Recente (Releases)](https://github.com/Dokizer/SCDP---Sistema-de-Controle-Digital-de-produ-o-/releases)**
 
-> O GitHub compila e disponibiliza o arquivo **`SCDP-v1.1-release.apk`** diretamente para download na aba **Releases**.
+> O GitHub compila e disponibiliza os arquivos **`SCDP-v1.2-debug.apk`** e **`SCDP-v1.2-release.apk`** diretamente para download na aba **Releases**.
 
 ---
 
