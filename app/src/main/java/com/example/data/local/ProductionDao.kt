@@ -70,4 +70,17 @@ interface ProductionDao {
 
     @Query("DELETE FROM dating_checks WHERE id = :id")
     suspend fun deleteDatingCheckById(id: String)
+
+    // Packaging Control List query
+    @Query("SELECT * FROM packaging_controls ORDER BY createdAt DESC")
+    suspend fun getPackagingControlsList(): List<PackagingControlEntity>
+
+    // Machine Downtime List query
+    @Query("SELECT * FROM machine_downtimes ORDER BY createdAt DESC")
+    suspend fun getMachineDowntimesList(): List<MachineDowntimeEntity>
+
+    // Dating Checks List query
+    @Query("SELECT * FROM dating_checks ORDER BY createdAt DESC")
+    suspend fun getDatingChecksList(): List<DatingCheckEntity>
 }
+

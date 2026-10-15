@@ -99,4 +99,9 @@ class ProductionRepository(
             HistoryType.DATING -> dao.deleteDatingCheckById(id)
         }
     }
+
+    suspend fun getAllPackagingControlsList(): List<PackagingControlEntity> = dao.getPackagingControlsList()
+    suspend fun getAllMachineDowntimesList(): List<MachineDowntimeEntity> = dao.getMachineDowntimesList()
+    suspend fun getAllDatingChecksList(): List<DatingCheckEntity> = dao.getDatingChecksList()
 }
+

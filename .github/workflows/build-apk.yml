@@ -49,32 +49,38 @@ jobs:
 
       - name: Renomear APK de Release para publicação
         run: |
-          cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/SCDP-v1.1-release.apk
+          cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/SCDP-v1.2-release.apk
 
       - name: Criar ou Atualizar Release Oficial com o APK
         uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
         with:
-          tag_name: v1.1.0
-          name: SCDP v1.1.0 - Versão Oficial Release (Download APK)
+          tag_name: v1.2.0
+          name: SCDP v1.2.0 - Versão Oficial Release (Download APK)
           body: |
-            ### 📱 SCDP - Sistema de Controle Digital de Produção (Farinhas CJ)
+            ### 📱 SCDP v1.2 - Sistema de Controle Digital de Produção (Farinhas CJ)
             
             Versão oficial de **Release** compilada e pronta para uso operacional no chão de fábrica.
             
-            #### 📦 Arquivos para Download:
-            - **`SCDP-v1.1-release.apk`** (Recomendado - 13 MB): Versão final de produção, estável e otimizada.
-            - **`app-debug.apk`**: Versão de testes/depuração.
+            #### 🌟 Novidades da Versão 1.2:
+            - **Exportação de Planilhas Excel e Google Planilhas (.CSV)** no padrão brasileiro (UTF-8 com BOM e separador `;`).
+            - Relatórios dedicados: Consolidado Geral, Controle de Empacotamento, Apontamento de Paradas e Checagem de Datagem.
+            - Filtros por período (*Hoje*, *Últimos 7 dias*, *Este mês* e *Todos*).
+            - Download direto para `Downloads/FarinhasCJ/Planilhas` e compartilhamento nativo via WhatsApp/E-mail.
+            - Mapeamento completo de lotes de bobinas, aparas, paradas e status de comprovante fotográfico de etiqueta.
+            
+            #### 📦 Arquivo Oficial para Download:
+            - **`SCDP-v1.2-release.apk`** (Recomendado): Versão final de produção, estável, compactada e otimizada.
             
             #### 📲 Como Instalar:
-            1. Baixe o **`SCDP-v1.1-release.apk`** no celular ou tablet Android.
+            1. Baixe o **`SCDP-v1.2-release.apk`** no celular ou tablet Android.
             2. Abra o arquivo baixado para iniciar a instalação.
             3. Se o Android perguntar, permita a instalação a partir do navegador/arquivos ("Instalar apps desconhecidos").
             4. Abra o SCDP e use normalmente!
           files: |
-            app/build/outputs/apk/release/SCDP-v1.1-release.apk
-            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/release/SCDP-v1.2-release.apk
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

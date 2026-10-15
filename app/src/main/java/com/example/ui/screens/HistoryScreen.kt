@@ -34,7 +34,10 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.PrecisionManufacturing
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material.icons.filled.Storage
+import com.example.ui.components.ExportSpreadsheetDialog
+import com.example.util.SpreadsheetExportType
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -97,6 +100,7 @@ fun HistoryScreen(viewModel: ProductionViewModel) {
     var selectedFilter by remember { mutableStateOf<HistoryType?>(null) }
     var searchQuery by remember { mutableStateOf("") }
     var itemToDelete by remember { mutableStateOf<UnifiedHistoryItem?>(null) }
+    var showExportSpreadsheetDialog by remember { mutableStateOf(false) }
 
     val filteredItems = remember(historyItems, selectedFilter, searchQuery) {
         historyItems.filter { item ->
@@ -110,6 +114,20 @@ fun HistoryScreen(viewModel: ProductionViewModel) {
             }
             matchesFilter && matchesQuery
         }
+    }
+
+    if (showExportSpreadsheetDialog) {
+        val initialType = when (selectedFilter) {
+            HistoryType.PACKAGING -> SpreadsheetExportType.PACKAGING
+            HistoryType.DOWNTIME -> SpreadsheetExportType.DOWNTIME
+            HistoryType.DATING -> SpreadsheetExportType.DATING
+            null -> SpreadsheetExportType.CONSOLIDATED
+        }
+        ExportSpreadsheetDialog(
+            viewModel = viewModel,
+            initialType = initialType,
+            onDismissRequest = { showExportSpreadsheetDialog = false }
+        )
     }
 
     if (itemToDelete != null) {
@@ -180,6 +198,20 @@ fun HistoryScreen(viewModel: ProductionViewModel) {
                             fontWeight = FontWeight.Bold
                         )
                     }
+
+                    IconButton(
+                        onClick = { showExportSpreadsheetDialog = true },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.TableChart,
+                            contentDescription = "Exportar Planilha Excel/CSV",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
 
                     IconButton(
                         onClick = { viewModel.toggleThemeMode() },
@@ -282,6 +314,50 @@ fun HistoryScreen(viewModel: ProductionViewModel) {
             )
 
             Spacer(modifier = Modifier.height(10.dp))
+
+            // Action Header: Rotina & Exportar Planilha
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "FILTRAR REGISTROS",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 0.5.sp
+                )
+
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .materialYouPress(scaleFactor = 0.95f, onClick = { showExportSpreadsheetDialog = true })
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.TableChart,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Exportar Planilha",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Filter Chips
             Row(

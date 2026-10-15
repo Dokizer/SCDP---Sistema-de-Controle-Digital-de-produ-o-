@@ -46,6 +46,8 @@ import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.PrecisionManufacturing
 import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.TableChart
+import com.example.ui.components.ExportSpreadsheetDialog
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
@@ -92,6 +94,7 @@ fun DashboardScreen(viewModel: ProductionViewModel) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
     var showCoffeeDialog by remember { mutableStateOf(false) }
+    var showExportSpreadsheetDialog by remember { mutableStateOf(false) }
 
     val pixKey = "Gabrielcostasantana2016@gmail.com"
 
@@ -278,6 +281,16 @@ fun DashboardScreen(viewModel: ProductionViewModel) {
                     badgeCount = historyItems.size,
                     onClick = { viewModel.navigateTo(AppScreen.History) }
                 )
+
+                DashboardActionCard(
+                    title = "Exportar Planilhas de Produção",
+                    subtitle = "Gere relatórios completos em Excel e Google Planilhas (.CSV) com filtros de data",
+                    icon = Icons.Default.TableChart,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    iconContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    iconColor = MaterialTheme.colorScheme.primary,
+                    onClick = { showExportSpreadsheetDialog = true }
+                )
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -455,6 +468,13 @@ fun DashboardScreen(viewModel: ProductionViewModel) {
                     Text("Fechar")
                 }
             }
+        )
+    }
+
+    if (showExportSpreadsheetDialog) {
+        ExportSpreadsheetDialog(
+            viewModel = viewModel,
+            onDismissRequest = { showExportSpreadsheetDialog = false }
         )
     }
 }

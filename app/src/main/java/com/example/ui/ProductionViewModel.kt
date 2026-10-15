@@ -83,6 +83,10 @@ class ProductionViewModel(application: Application) : AndroidViewModel(applicati
     suspend fun getMachineDowntime(id: String): MachineDowntimeEntity? = repository.getMachineDowntime(id)
     suspend fun getDatingCheck(id: String): DatingCheckEntity? = repository.getDatingCheck(id)
 
+    suspend fun getAllPackagingControls(): List<PackagingControlEntity> = repository.getAllPackagingControlsList()
+    suspend fun getAllMachineDowntimes(): List<MachineDowntimeEntity> = repository.getAllMachineDowntimesList()
+    suspend fun getAllDatingChecks(): List<DatingCheckEntity> = repository.getAllDatingChecksList()
+
     fun deleteHistoryItem(id: String, type: HistoryType) {
         viewModelScope.launch {
             repository.deleteHistoryItem(id, type)

@@ -58,12 +58,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material.icons.filled.TableChart
 import com.example.data.model.DatingCheckEntity
 import com.example.data.model.HistoryType
 import com.example.data.model.MachineDowntimeEntity
 import com.example.data.model.PackagingControlEntity
 import com.example.ui.AppScreen
 import com.example.ui.ProductionViewModel
+import com.example.util.SpreadsheetExportUtil
 import com.example.ui.theme.PdfAmber
 import com.example.ui.theme.PdfCardBackground
 import com.example.ui.theme.PdfCardBorder
@@ -176,6 +178,32 @@ fun RecordDetailDashboardScreen(
                     }
 
                     // PDF Export Quick Action
+                    IconButton(
+                        onClick = {
+                            val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                            when (type) {
+                                HistoryType.PACKAGING -> packagingEntity?.let {
+                                    val csv = SpreadsheetExportUtil.generateSinglePackagingCsv(it)
+                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Empacotamento_${it.line}_$dateTag.csv", csv)
+                                }
+                                HistoryType.DOWNTIME -> downtimeEntity?.let {
+                                    val csv = SpreadsheetExportUtil.generateSingleDowntimeCsv(it)
+                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Paradas_${it.line}_$dateTag.csv", csv)
+                                }
+                                HistoryType.DATING -> datingEntity?.let {
+                                    val csv = SpreadsheetExportUtil.generateSingleDatingCsv(it)
+                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Datagem_${it.machine}_$dateTag.csv", csv)
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.TableChart,
+                            contentDescription = "Exportar Planilha CSV",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
                     IconButton(
                         onClick = {
                             when (type) {
