@@ -234,7 +234,7 @@ fun RecordDetailDashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Botão Principal: BAIXAR PDF (Faz o download automático para a pasta Downloads do aparelho)
+                    // Botão 1: BAIXAR PDF
                     Button(
                         onClick = {
                             when (type) {
@@ -256,13 +256,51 @@ fun RecordDetailDashboardScreen(
                         Icon(
                             imageVector = Icons.Default.FileDownload,
                             contentDescription = "Baixar PDF",
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = "BAIXAR PDF",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    // Botão 2: BAIXAR PLANILHA
+                    FilledTonalButton(
+                        onClick = {
+                            val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                            when (type) {
+                                HistoryType.PACKAGING -> packagingEntity?.let {
+                                    val csv = SpreadsheetExportUtil.generateSinglePackagingCsv(it)
+                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Empacotamento_${it.line}_$dateTag.csv", csv)
+                                }
+                                HistoryType.DOWNTIME -> downtimeEntity?.let {
+                                    val csv = SpreadsheetExportUtil.generateSingleDowntimeCsv(it)
+                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Paradas_${it.line}_$dateTag.csv", csv)
+                                }
+                                HistoryType.DATING -> datingEntity?.let {
+                                    val csv = SpreadsheetExportUtil.generateSingleDatingCsv(it)
+                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Datagem_${it.machine}_$dateTag.csv", csv)
+                                }
+                            }
+                        },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp)
+                            .materialYouPress(scaleFactor = 0.97f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.TableChart,
+                            contentDescription = "Baixar Planilha",
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "PLANILHA",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
                         )
                     }
 

@@ -38,6 +38,9 @@ import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material.icons.filled.Storage
 import com.example.ui.components.ExportSpreadsheetDialog
 import com.example.util.SpreadsheetExportType
+import com.example.util.SpreadsheetExportUtil
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -89,6 +92,7 @@ import java.util.Locale
 @Composable
 fun HistoryScreen(viewModel: ProductionViewModel) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val historyItems by viewModel.historyItems.collectAsState()
     val themeMode by viewModel.themeMode.collectAsState()
     val systemInDark = isSystemInDarkTheme()
@@ -441,6 +445,34 @@ fun HistoryScreen(viewModel: ProductionViewModel) {
                                 onClick = {
                                     viewModel.navigateTo(AppScreen.RecordDashboard(item.id, item.type))
                                 },
+                                onDownloadSpreadsheet = {
+                                    coroutineScope.launch {
+                                        val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                                        when (item.type) {
+                                            HistoryType.PACKAGING -> {
+                                                val entity = viewModel.getPackagingControl(item.id)
+                                                entity?.let {
+                                                    val csv = SpreadsheetExportUtil.generateSinglePackagingCsv(it)
+                                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Empacotamento_${it.line}_$dateTag.csv", csv)
+                                                }
+                                            }
+                                            HistoryType.DOWNTIME -> {
+                                                val entity = viewModel.getMachineDowntime(item.id)
+                                                entity?.let {
+                                                    val csv = SpreadsheetExportUtil.generateSingleDowntimeCsv(it)
+                                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Paradas_${it.line}_$dateTag.csv", csv)
+                                                }
+                                            }
+                                            HistoryType.DATING -> {
+                                                val entity = viewModel.getDatingCheck(item.id)
+                                                entity?.let {
+                                                    val csv = SpreadsheetExportUtil.generateSingleDatingCsv(it)
+                                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Datagem_${it.machine}_$dateTag.csv", csv)
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
                                 onDelete = {
                                     itemToDelete = item
                                 }
@@ -527,6 +559,7 @@ private fun HistoryFilterChip(
 private fun HistoryItemCard(
     item: UnifiedHistoryItem,
     onClick: () -> Unit,
+    onDownloadSpreadsheet: () -> Unit,
     onDelete: () -> Unit
 ) {
     val (icon, iconBg, iconTint) = when (item.type) {
@@ -556,7 +589,7 @@ private fun HistoryItemCard(
                 .fillMaxWidth()
                 .padding(14.dp)
         ) {
-            // Linha superior: Ícone da categoria + Título e Subtítulo + Botão Excluir
+            // Linha superior: Ícone da categoria + Título e Subtítulo + Botões Baixar Planilha e Excluir
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -597,7 +630,20 @@ private fun HistoryItemCard(
                     )
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+
+                // Botão de Download da Planilha deste registro específico
+                IconButton(
+                    onClick = onDownloadSpreadsheet,
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.TableChart,
+                        contentDescription = "Baixar Planilha deste registro",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
 
                 IconButton(
                     onClick = onDelete,

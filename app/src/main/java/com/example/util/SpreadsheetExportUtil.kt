@@ -515,29 +515,9 @@ object SpreadsheetExportUtil {
 
             Toast.makeText(
                 context,
-                "✓ Planilha salva com sucesso!\nSalva em: Downloads/FarinhasCJ/Planilhas/$safeFilename",
+                "✓ Planilha salva no aparelho!\nPasta: Downloads/FarinhasCJ/Planilhas/$safeFilename",
                 Toast.LENGTH_LONG
             ).show()
-
-            // 3. Abre automaticamente na ferramenta de planilha (Excel, Sheets, etc.)
-            try {
-                val fileUri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.fileprovider",
-                    cacheFile
-                )
-                val openIntent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(fileUri, "text/comma-separated-values")
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                val chooser = Intent.createChooser(openIntent, "Abrir Planilha de Produção").apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(chooser)
-            } catch (_: Exception) {
-                // Arquivo já foi salvo com sucesso em Downloads
-            }
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(context, "Erro ao baixar planilha: ${e.message}", Toast.LENGTH_LONG).show()

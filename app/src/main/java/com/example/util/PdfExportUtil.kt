@@ -709,26 +709,6 @@ object PdfExportUtil {
                 "✓ Download concluído com sucesso!\nSalvo em: Downloads/FarinhasCJ/$filename",
                 Toast.LENGTH_LONG
             ).show()
-
-            // 5. Abre automaticamente o PDF baixado no leitor do tablet/celular
-            try {
-                val viewUri = FileProvider.getUriForFile(
-                    context,
-                    "${context.packageName}.fileprovider",
-                    cacheFile
-                )
-                val openIntent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(viewUri, "application/pdf")
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                val chooser = Intent.createChooser(openIntent, "Abrir PDF Baixado").apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(chooser)
-            } catch (_: Exception) {
-                // Se não houver leitor de PDF instalado, o arquivo já está baixado e seguro na pasta Downloads
-            }
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(context, "Erro ao baixar PDF: ${e.message}", Toast.LENGTH_LONG).show()
