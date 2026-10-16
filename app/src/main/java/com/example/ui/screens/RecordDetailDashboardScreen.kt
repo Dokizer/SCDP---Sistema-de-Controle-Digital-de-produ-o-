@@ -40,6 +40,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import com.example.ui.theme.materialYouPress
 import androidx.compose.material3.Surface
@@ -56,6 +59,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.filled.TableChart
@@ -225,110 +230,252 @@ fun RecordDetailDashboardScreen(
         bottomBar = {
             Surface(
                 color = MaterialTheme.colorScheme.surfaceContainer,
-                tonalElevation = 2.dp
+                tonalElevation = 3.dp,
+                shadowElevation = 8.dp
             ) {
-                Row(
+                BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
                 ) {
-                    // Botão 1: BAIXAR PDF
-                    Button(
-                        onClick = {
-                            when (type) {
-                                HistoryType.PACKAGING -> packagingEntity?.let { PdfExportUtil.downloadPackagingPdf(context, it) }
-                                HistoryType.DOWNTIME -> downtimeEntity?.let { PdfExportUtil.downloadDowntimePdf(context, it) }
-                                HistoryType.DATING -> datingEntity?.let { PdfExportUtil.downloadDatingPdf(context, it) }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp)
-                            .materialYouPress(scaleFactor = 0.97f)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FileDownload,
-                            contentDescription = "Baixar PDF",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "BAIXAR PDF",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
-                        )
-                    }
+                    val isWideScreen = maxWidth >= 480.dp
 
-                    // Botão 2: BAIXAR PLANILHA
-                    FilledTonalButton(
-                        onClick = {
-                            val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
-                            when (type) {
-                                HistoryType.PACKAGING -> packagingEntity?.let {
-                                    val csv = SpreadsheetExportUtil.generateSinglePackagingCsv(it)
-                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Empacotamento_${it.line}_$dateTag.csv", csv)
-                                }
-                                HistoryType.DOWNTIME -> downtimeEntity?.let {
-                                    val csv = SpreadsheetExportUtil.generateSingleDowntimeCsv(it)
-                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Paradas_${it.line}_$dateTag.csv", csv)
-                                }
-                                HistoryType.DATING -> datingEntity?.let {
-                                    val csv = SpreadsheetExportUtil.generateSingleDatingCsv(it)
-                                    SpreadsheetExportUtil.downloadCsv(context, "SCDP_Datagem_${it.machine}_$dateTag.csv", csv)
-                                }
+                    if (isWideScreen) {
+                        // Layout lado a lado com espaço generoso para tablets e modo paisagem
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Button(
+                                onClick = {
+                                    when (type) {
+                                        HistoryType.PACKAGING -> packagingEntity?.let { PdfExportUtil.downloadPackagingPdf(context, it) }
+                                        HistoryType.DOWNTIME -> downtimeEntity?.let { PdfExportUtil.downloadDowntimePdf(context, it) }
+                                        HistoryType.DATING -> datingEntity?.let { PdfExportUtil.downloadDatingPdf(context, it) }
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ),
+                                shape = RoundedCornerShape(14.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .materialYouPress(scaleFactor = 0.97f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PictureAsPdf,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Baixar PDF",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    maxLines = 1
+                                )
                             }
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(48.dp)
-                            .materialYouPress(scaleFactor = 0.97f)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.TableChart,
-                            contentDescription = "Baixar Planilha",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "PLANILHA",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
-                        )
-                    }
 
-                    // Botão Secundário: Compartilhar (via WhatsApp, Bluetooth, E-mail, etc.)
-                    FilledTonalButton(
-                        onClick = {
-                            when (type) {
-                                HistoryType.PACKAGING -> packagingEntity?.let { PdfExportUtil.sharePackagingPdf(context, it) }
-                                HistoryType.DOWNTIME -> downtimeEntity?.let { PdfExportUtil.shareDowntimePdf(context, it) }
-                                HistoryType.DATING -> datingEntity?.let { PdfExportUtil.shareDatingPdf(context, it) }
+                            FilledTonalButton(
+                                onClick = {
+                                    val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                                    when (type) {
+                                        HistoryType.PACKAGING -> packagingEntity?.let {
+                                            val csv = SpreadsheetExportUtil.generateSinglePackagingCsv(it)
+                                            SpreadsheetExportUtil.downloadCsv(context, "SCDP_Empacotamento_${it.line}_$dateTag.csv", csv)
+                                        }
+                                        HistoryType.DOWNTIME -> downtimeEntity?.let {
+                                            val csv = SpreadsheetExportUtil.generateSingleDowntimeCsv(it)
+                                            SpreadsheetExportUtil.downloadCsv(context, "SCDP_Paradas_${it.line}_$dateTag.csv", csv)
+                                        }
+                                        HistoryType.DATING -> datingEntity?.let {
+                                            val csv = SpreadsheetExportUtil.generateSingleDatingCsv(it)
+                                            SpreadsheetExportUtil.downloadCsv(context, "SCDP_Datagem_${it.machine}_$dateTag.csv", csv)
+                                        }
+                                    }
+                                },
+                                shape = RoundedCornerShape(14.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                                colors = ButtonDefaults.filledTonalButtonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .materialYouPress(scaleFactor = 0.97f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.TableChart,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Baixar Planilha",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    maxLines = 1
+                                )
                             }
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .height(48.dp)
-                            .materialYouPress(scaleFactor = 0.97f)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Share,
-                            contentDescription = "Compartilhar",
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Compartilhar",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
-                        )
+
+                            OutlinedButton(
+                                onClick = {
+                                    when (type) {
+                                        HistoryType.PACKAGING -> packagingEntity?.let { PdfExportUtil.sharePackagingPdf(context, it) }
+                                        HistoryType.DOWNTIME -> downtimeEntity?.let { PdfExportUtil.shareDowntimePdf(context, it) }
+                                        HistoryType.DATING -> datingEntity?.let { PdfExportUtil.shareDatingPdf(context, it) }
+                                    }
+                                },
+                                shape = RoundedCornerShape(14.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp)
+                                    .materialYouPress(scaleFactor = 0.97f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Compartilhar",
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 13.sp,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+                    } else {
+                        // Layout dinâmico em 2 níveis para celulares (garante legibilidade total e zero cortes)
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Linha 1: Os dois botões principais de Download lado a lado com largura total
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Botão 1: BAIXAR PDF
+                                Button(
+                                    onClick = {
+                                        when (type) {
+                                            HistoryType.PACKAGING -> packagingEntity?.let { PdfExportUtil.downloadPackagingPdf(context, it) }
+                                            HistoryType.DOWNTIME -> downtimeEntity?.let { PdfExportUtil.downloadDowntimePdf(context, it) }
+                                            HistoryType.DATING -> datingEntity?.let { PdfExportUtil.downloadDatingPdf(context, it) }
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    ),
+                                    shape = RoundedCornerShape(14.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(46.dp)
+                                        .materialYouPress(scaleFactor = 0.97f)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PictureAsPdf,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Baixar PDF",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        maxLines = 1
+                                    )
+                                }
+
+                                // Botão 2: BAIXAR PLANILHA
+                                FilledTonalButton(
+                                    onClick = {
+                                        val dateTag = SimpleDateFormat("yyyyMMdd_HHmm", Locale.getDefault()).format(Date())
+                                        when (type) {
+                                            HistoryType.PACKAGING -> packagingEntity?.let {
+                                                val csv = SpreadsheetExportUtil.generateSinglePackagingCsv(it)
+                                                SpreadsheetExportUtil.downloadCsv(context, "SCDP_Empacotamento_${it.line}_$dateTag.csv", csv)
+                                            }
+                                            HistoryType.DOWNTIME -> downtimeEntity?.let {
+                                                val csv = SpreadsheetExportUtil.generateSingleDowntimeCsv(it)
+                                                SpreadsheetExportUtil.downloadCsv(context, "SCDP_Paradas_${it.line}_$dateTag.csv", csv)
+                                            }
+                                            HistoryType.DATING -> datingEntity?.let {
+                                                val csv = SpreadsheetExportUtil.generateSingleDatingCsv(it)
+                                                SpreadsheetExportUtil.downloadCsv(context, "SCDP_Datagem_${it.machine}_$dateTag.csv", csv)
+                                            }
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(14.dp),
+                                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                                    colors = ButtonDefaults.filledTonalButtonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                    ),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(46.dp)
+                                        .materialYouPress(scaleFactor = 0.97f)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.TableChart,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = "Baixar Planilha",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 13.sp,
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+
+                            // Linha 2: Compartilhar com largura total
+                            OutlinedButton(
+                                onClick = {
+                                    when (type) {
+                                        HistoryType.PACKAGING -> packagingEntity?.let { PdfExportUtil.sharePackagingPdf(context, it) }
+                                        HistoryType.DOWNTIME -> downtimeEntity?.let { PdfExportUtil.shareDowntimePdf(context, it) }
+                                        HistoryType.DATING -> datingEntity?.let { PdfExportUtil.shareDatingPdf(context, it) }
+                                    }
+                                },
+                                shape = RoundedCornerShape(12.dp),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.7f)),
+                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(40.dp)
+                                    .materialYouPress(scaleFactor = 0.98f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Compartilhar Relatório (WhatsApp / E-mail)",
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -1190,13 +1337,17 @@ private fun DashboardRow(label: String, value: String) {
         Text(
             text = label,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f, fill = false)
         )
+        Spacer(modifier = Modifier.width(12.dp))
         Text(
             text = value,
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.End,
+            modifier = Modifier.weight(1f, fill = false)
         )
     }
 }
@@ -1211,8 +1362,10 @@ private fun ConformityBadgeRow(label: String, isCompliant: Boolean) {
         Text(
             text = label,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f, fill = false)
         )
+        Spacer(modifier = Modifier.width(8.dp))
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
